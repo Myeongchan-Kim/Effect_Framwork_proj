@@ -191,7 +191,7 @@ HRESULT InitDevice()
 	vp.Width = 800;
 	vp.Height = 600;
 	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	g_pImmediateContext->RSSetViewports(1, &vp);
@@ -261,7 +261,7 @@ void Render(float deltaTime)
 	g_pImmediateContext->RSSetState(g_pSolidRS);
 	// 계산 및 그리기
 	CalculateMatrixForBox(deltaTime);
-	g_pImmediateContext->DrawIndexed(36, 0, 0);
+	g_pImmediateContext->DrawIndexed(72, 0, 0);
 
 	//Render(백버퍼를 프론트 버퍼로 그린다.)
 	g_pSwapChain->Present(0, 0);
@@ -340,7 +340,7 @@ void CreateVertexBuffer()
 {
 	MyVertex vertices[] =
 	{
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),XMFLOAT3(-0.33f, 0.33f, -0.33f) , XMFLOAT2(1.0f, 1.0f)},
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, -0.33f), XMFLOAT2(1.0f, 1.0f) },
 		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, -0.33f), XMFLOAT2(0.0f, 1.0f) },
 		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, 0.33f), XMFLOAT2(0.0f, 0.0f) },
 		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, 0.33f), XMFLOAT2(1.0f, 0.0f) },
@@ -348,6 +348,14 @@ void CreateVertexBuffer()
 		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, -0.33f), XMFLOAT2(1.0f, 0.0f) },
 		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, 0.33f), XMFLOAT2(1.0f, 1.0f) },
 		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, 0.33f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, -0.33f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, -0.33f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 3.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, 0.33f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 3.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, 0.33f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, -0.33f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, -0.33f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 2.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, 0.33f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 2.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, 0.33f), XMFLOAT2(0.0f, 1.0f) },
 	};
 
 	D3D11_BUFFER_DESC bd;
@@ -384,6 +392,19 @@ void CreateIndexBuff()
 		3, 7, 2,
 		6, 4, 5,
 		7, 4, 6,
+
+		3+8, 1+8, 0+8,
+		2+8, 1+8, 3+8,
+		0+8, 5+8, 4+8,
+		1+8, 5+8, 0+8,
+		3+8, 4+8, 7+8,
+		0+8, 4+8, 3+8,
+		1+8, 6+8, 5+8,
+		2+8, 6+8, 1+8,
+		2+8, 7+8, 6+8,
+		3+8, 7+8, 2+8,
+		6+8, 4+8, 5+8,
+		7+8, 4+8, 6+8,
 	};
 
 	D3D11_BUFFER_DESC	ibd;
