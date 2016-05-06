@@ -6,6 +6,7 @@
 #include <D3Dcompiler.h>
 #include <D3DX11.h>
 #include <DxErr.h>
+#include "d3dX11Effect.h"
 #include "MyVertex.h"
 
 #define szWindowClass	TEXT("First")
@@ -25,6 +26,10 @@ ID3D11Buffer*			g_pConstantBuffer;
 XMMATRIX                g_World;
 XMMATRIX                g_View;
 XMMATRIX                g_Projection;
+
+ID3DX11Effect* gFX;
+ID3DX11EffectTechnique* gTech;
+ID3DX11EffectMatrixVariable* gfxWorldViewProj;
 
 ID3D11Texture2D*		g_pDepthStencil = NULL;
 ID3D11DepthStencilView* g_pDepthStencilView = NULL;
