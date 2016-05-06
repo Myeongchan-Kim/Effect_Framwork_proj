@@ -45,7 +45,7 @@ float4 PS(VertexOut vOut): SV_TARGET
 {
 	float4 finalColor = 0;
 
-	finalColor = saturate((dot((float3) - lightDir, vOut.normal) * 0.5f + 0.5f)) * lightColor;
+	finalColor = saturate((dot( -lightDir, vOut.normal) * 0.5f + 0.5f)) * lightColor;
 	float4 texColor = texDiffuse.Sample(samLinear, vOut.tex) * finalColor;
 	texColor.a = 1.0f;
 
@@ -58,6 +58,7 @@ technique11 ColorTech
 	pass P0
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 };

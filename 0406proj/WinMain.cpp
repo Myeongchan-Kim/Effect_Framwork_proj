@@ -453,7 +453,8 @@ void InitMatrix()
 void CalculateMatrixForBox(float deltaTime)
 {
 	// 박스를 회전시키기 위한 연산.    위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
-	XMMATRIX mat = XMMatrixRotationY(deltaTime);
+	XMMATRIX mat = XMMatrixScaling(1.2f,1.2f, 1.0f);
+	mat *= XMMatrixRotationY(deltaTime);
 	mat *= XMMatrixRotationX(deltaTime);
 	g_World = mat;
 
