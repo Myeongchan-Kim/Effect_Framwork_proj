@@ -61,20 +61,8 @@ void CreateDepthStencilTexture();
 void CreateRenderState();
 void CreateRenderStateToWire();
 
-XMFLOAT4 lightDirection =
-{
-	XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)
-};
-
-XMFLOAT4 lightColor =
-{
-	XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f)
-};
 
 struct ConstantBuffer
 {
 	XMMATRIX wvp;
-	XMMATRIX world;
-	XMFLOAT4 lightDir;
-	XMFLOAT4 lightColor;
 };
