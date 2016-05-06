@@ -51,3 +51,13 @@ float4 PS(VertexOut vOut): SV_TARGET
 
 	return texColor;
 };
+
+
+technique11 ColorTech
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+};
