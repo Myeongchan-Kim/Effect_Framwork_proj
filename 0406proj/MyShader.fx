@@ -1,6 +1,11 @@
 
-Texture2D texDiffuse;
-SamplerState samLinear;
+//Texture2D texDiffuse;
+//SamplerState samLinear;
+
+cbuffer ConstantBuffer
+{
+	float4x4 	wvp;
+}
 
 struct VertexIn
 {
@@ -14,10 +19,6 @@ struct VertexOut
 	float4 color:COLOR;
 };
 
-cbuffer ConstantBuffer
-{
-	float4x4 	wvp;
-}
 
 VertexOut    VS(VertexIn vIn)
 {
@@ -34,3 +35,20 @@ float4 PS(VertexOut vOut): SV_TARGET
 	
 	return vOut.color;
 };
+
+RasterizerState WireframesRS
+{
+	FillMode = WireFrame;
+	CullMode = Back;
+	FrontCounterClockwisk = false;
+};
+
+technique11 ColorTech
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+}

@@ -18,7 +18,7 @@ ID3D11Device*			g_pd3dDevice = NULL;
 ID3D11DeviceContext*	g_pImmediateContext = NULL;
 ID3D11RenderTargetView*	g_pRenderTargetView = NULL;
 ID3D11VertexShader*		g_pVertexShader = NULL;
-ID3D11InputLayout*		g_pVertexLayout = NULL;
+ID3D11InputLayout*		g_pInputLayout = NULL;
 ID3D11Buffer*			g_pVertexBuffer = NULL;
 ID3D11PixelShader*		g_pPixelShader = NULL;
 ID3D11Buffer*			g_pIndexBuffer = NULL;
@@ -52,6 +52,7 @@ HRESULT LoadTexture();
 void Render(float deltaTime);
 void CleanupDevice();
 void CreateShader();
+void CreateEffectShader();
 void CreateVertexBuffer();
 void CreateIndexBuff();
 void CreateConstantBuffer();
@@ -60,7 +61,6 @@ void InitMatrix();
 void CreateDepthStencilTexture();
 void CreateRenderState();
 void CreateRenderStateToWire();
-
 
 struct ConstantBuffer
 {

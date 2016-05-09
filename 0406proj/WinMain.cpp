@@ -45,11 +45,12 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	g_hWnd = hWnd;
 	InitDevice();
 	//LoadTexture();
-	CreateShader();
+	//CreateShader();
+	CreateEffectShader();
 	CreateVertexBuffer();
 	CreateIndexBuff();
 	InitMatrix();
-	CreateConstantBuffer();
+	//CreateConstantBuffer();
 	//CreateRenderState();
 	//CreateDepthStencilTexture();
 
@@ -200,6 +201,7 @@ HRESULT InitDevice()
 	return hr;
 }
 
+
 HRESULT LoadTexture()
 {
 	HRESULT hr = D3DX11CreateShaderResourceViewFromFile(
@@ -243,7 +245,7 @@ void Render(float deltaTime)
 		0					//stencil buffer 지울때 초기값
 		);
 	// 그리는 부분
-	g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
+	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
 	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	UINT stride = sizeof(MyVertex);
@@ -252,18 +254,27 @@ void Render(float deltaTime)
 	g_pImmediateContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	
 	//Set Shader and Draw
-	g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);
-	g_pImmediateContext->PSSetShader(g_pPixelShader, NULL, 0);
+	//g_pImmediateContext->VSSetShader(g_pVertexShader, NULL, 0);
+	//g_pImmediateContext->PSSetShader(g_pPixelShader, NULL, 0);
 	
-	g_pImmediateContext->PSSetShaderResources(0, 1, &g_pTextureRV);
-	g_pImmediateContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
+	//g_pImmediateContext->PSSetShaderResources(0, 1, &g_pTextureRV);
+	//g_pImmediateContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
 
 	//rset render state
 	//g_pImmediateContext->RSSetState(g_pSolidRS);
-	// 계산 및 그리기
-	CalculateMatrixForBox(deltaTime);
-	g_pImmediateContext->DrawIndexed(72, 0, 0);
+	
 
+	
+	D3DX11_TECHNIQUE_DESC techDesc;
+	gTech->GetDesc(&techDesc);
+
+	for (UINT p = 0; p < techDesc.Passes; ++p)
+	{
+		CalculateMatrixForBox(deltaTime);
+		gTech->GetPassByIndex(p)->Apply(0, g_pImmediateContext);
+
+		g_pImmediateContext->DrawIndexed(72, 0, 0);
+	}
 	//Render(백버퍼를 프론트 버퍼로 그린다.)
 	g_pSwapChain->Present(0, 0);
 
@@ -271,69 +282,118 @@ void Render(float deltaTime)
 
 void CreateShader()
 {
+	//ID3DBlob *pVSBlob = NULL;
+	//ID3DBlob *pPSBlob = NULL;
+	//ID3DBlob *pErrorBlob = NULL;
+	//HRESULT hr;
+
+	////vertex shader
+	//hr = D3DX11CompileFromFile(
+	//	L"MyShader.fx", 0, 0,
+	//	"VS", "vs_5_0",
+	//	0, 0, 0,
+	//	&pVSBlob, &pErrorBlob, 0);
+
+	//if (FAILED(hr))
+	//	return;
+
+	//hr = g_pd3dDevice->CreateVertexShader(
+	//	pVSBlob->GetBufferPointer(),
+	//	pVSBlob->GetBufferSize(),
+	//	0, &g_pVertexShader);
+
+	//if (FAILED(hr))
+	//	return;
+
+	////pixel shader
+	//hr = D3DX11CompileFromFile(
+	//	L"MyShader.fx", 0, 0,
+	//	"PS", "ps_5_0",
+	//	0, 0, 0,
+	//	&pPSBlob, &pErrorBlob, 0);
+
+	//if (FAILED(hr))
+	//	return;
+
+	//hr = g_pd3dDevice->CreatePixelShader(
+	//	pPSBlob->GetBufferPointer(),
+	//	pPSBlob->GetBufferSize(),
+	//	0, &g_pPixelShader);
+
+	//pPSBlob->Release();
+
+	//// Myvertex 정보
+	//D3D11_INPUT_ELEMENT_DESC	layout[] =
+	//{
+	//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//};
+
+	//UINT numElements = ARRAYSIZE(layout);
+	//hr = g_pd3dDevice->CreateInputLayout(
+	//	layout, numElements,
+	//	pVSBlob->GetBufferPointer(),
+	//	pVSBlob->GetBufferSize(),
+	//	&g_pInputLayout);
+
+	//pVSBlob->Release();
+
+	//if (FAILED(hr))
+	//	return;
+
+
+	return;
+}
+
+
+void CreateEffectShader()
+{
+	ID3DBlob *pFxBlob = NULL;
 	ID3DBlob *pErrorBlob = NULL;
+	HRESULT hr;
 
 	//vertex shader
-	ID3DBlob *pVSBlob = NULL;
-	HRESULT hr = D3DX11CompileFromFile(
+	hr = D3DX11CompileFromFile(
 		L"MyShader.fx", 0, 0,
-		"VS", "vs_5_0",
+		NULL , "fx_5_0",
 		0, 0, 0,
-		&pVSBlob, &pErrorBlob, 0);
+		&pFxBlob, &pErrorBlob, 0);
 
-	if (FAILED(hr))
-		return;
-
-	hr = g_pd3dDevice->CreateVertexShader(
-		pVSBlob->GetBufferPointer(),
-		pVSBlob->GetBufferSize(),
-		0, &g_pVertexShader);
-
-	if (FAILED(hr))
-		return;
-
-
-	// Myvertex 정보
-	D3D11_INPUT_ELEMENT_DESC	layout[] = 
+	if (pErrorBlob != 0)
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		MessageBoxA(0, (char*)pErrorBlob->GetBufferPointer(), 0, 0);
+		pErrorBlob->Release();
+	}
+
+	D3DX11CreateEffectFromMemory(
+		pFxBlob->GetBufferPointer(),
+		pFxBlob->GetBufferSize(),
+		0, g_pd3dDevice, &gFX);
+		
+	pFxBlob->Release();
+	
+	gTech = gFX->GetTechniqueByName("ColorTech");
+	gfxWorldViewProj = gFX->GetVariableByName("wvp")->AsMatrix();
+
+
+	D3D11_INPUT_ELEMENT_DESC	layout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
+
+	D3DX11_PASS_DESC passDesc;
+	gTech->GetPassByIndex(0)->GetDesc(&passDesc);
 
 	UINT numElements = ARRAYSIZE(layout);
 	hr = g_pd3dDevice->CreateInputLayout(
 		layout, numElements,
-		pVSBlob->GetBufferPointer(),
-		pVSBlob->GetBufferSize(),
-		&g_pVertexLayout);
-	
-	pVSBlob->Release();
-	
-	if (FAILED(hr))
-		return;
+		passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize,
+		&g_pInputLayout);
 
-	
-	//pixel shader
-	ID3DBlob *pPSBlob = NULL;
-	hr = D3DX11CompileFromFile(
-		L"MyShader.fx", 0, 0,
-		"PS", "ps_5_0",
-		0, 0, 0,
-		&pPSBlob, &pErrorBlob, 0);
-	
-	if (FAILED(hr))
-		return;
-
-	
-	hr = g_pd3dDevice->CreatePixelShader(
-		pPSBlob->GetBufferPointer(),
-		pPSBlob->GetBufferSize(),
-		0, &g_pPixelShader);
-	
-
-	pPSBlob->Release();
-	return;
 }
+
 
 void CreateVertexBuffer()
 {
@@ -451,7 +511,7 @@ void InitMatrix()
 
 void CalculateMatrixForBox(float deltaTime)
 {
-	// 박스를 회전시키기 위한 연산.    위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
+	// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
 	XMMATRIX mat  = XMMatrixRotationY(deltaTime);
 	mat *= XMMatrixRotationX(deltaTime);
 	g_World = mat;
@@ -519,7 +579,7 @@ void CleanupDevice()
 {
 	if (g_pIndexBuffer)g_pIndexBuffer->Release();
 	if (g_pVertexBuffer)g_pVertexBuffer->Release();
-	if (g_pVertexLayout)g_pVertexLayout->Release();
+	if (g_pInputLayout)g_pInputLayout->Release();
 	if (g_pVertexShader)g_pVertexShader->Release();
 	if (g_pPixelShader)g_pPixelShader->Release();
 
