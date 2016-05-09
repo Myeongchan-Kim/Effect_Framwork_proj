@@ -50,7 +50,7 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	CreateVertexBuffer();
 	CreateIndexBuff();
 	InitMatrix();
-	//CreateConstantBuffer();
+	CreateConstantBuffer();
 	//CreateRenderState();
 	//CreateDepthStencilTexture();
 
@@ -264,13 +264,13 @@ void Render(float deltaTime)
 	//g_pImmediateContext->RSSetState(g_pSolidRS);
 	
 
-	
+	CalculateMatrixForBox(deltaTime);
+
 	D3DX11_TECHNIQUE_DESC techDesc;
 	gTech->GetDesc(&techDesc);
 
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
-		CalculateMatrixForBox(deltaTime);
 		gTech->GetPassByIndex(p)->Apply(0, g_pImmediateContext);
 
 		g_pImmediateContext->DrawIndexed(72, 0, 0);
@@ -374,7 +374,6 @@ void CreateEffectShader()
 	
 	gTech = gFX->GetTechniqueByName("ColorTech");
 	gfxWorldViewProj = gFX->GetVariableByName("wvp")->AsMatrix();
-
 
 	D3D11_INPUT_ELEMENT_DESC	layout[] =
 	{
@@ -512,16 +511,24 @@ void InitMatrix()
 void CalculateMatrixForBox(float deltaTime)
 {
 	// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
-	XMMATRIX mat  = XMMatrixRotationY(deltaTime);
+	//XMMATRIX mat  = XMMatrixRotationY(deltaTime);
+	//mat *= XMMatrixRotationX(deltaTime);
+	//g_World = mat;
+
+	//XMMATRIX wvp = g_World * g_View * g_Projection;
+	//ConstantBuffer cb;
+	//cb.wvp = XMMatrixTranspose(wvp);
+
+	//g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
+	//g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);// set constant buffer.
+
+	XMMATRIX mat = XMMatrixRotationY(deltaTime);
 	mat *= XMMatrixRotationX(deltaTime);
 	g_World = mat;
 
 	XMMATRIX wvp = g_World * g_View * g_Projection;
-	ConstantBuffer cb;
-	cb.wvp = XMMatrixTranspose(wvp);
 
-	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
-	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);// set constant buffer.
+	gfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&wvp));
 
 }
 

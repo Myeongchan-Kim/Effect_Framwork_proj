@@ -40,7 +40,7 @@ RasterizerState WireframesRS
 {
 	FillMode = WireFrame;
 	CullMode = Back;
-	FrontCounterClockwisk = false;
+	FrontCounterClockwise = false;
 };
 
 technique11 ColorTech
