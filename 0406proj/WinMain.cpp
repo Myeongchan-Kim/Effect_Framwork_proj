@@ -239,10 +239,10 @@ void Render(float deltaTime)
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
 
 	g_pImmediateContext->ClearDepthStencilView(
-		g_pDepthStencilView, //clear target
-		D3D11_CLEAR_DEPTH,	//Clear flag(depth, stencil)
-		1.0f,				//depth buffer 지울 때 채울 값
-		0					//stencil buffer 지울때 초기값
+		g_pDepthStencilView,	//clear target
+		D3D11_CLEAR_DEPTH,		//Clear flag(depth, stencil)
+		1.0f,					//depth buffer 지울 때 채울 값
+		0						//stencil buffer 지울때 초기값
 		);
 	// 그리는 부분
 	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
@@ -272,7 +272,6 @@ void Render(float deltaTime)
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		gTech->GetPassByIndex(p)->Apply(0, g_pImmediateContext);
-
 		g_pImmediateContext->DrawIndexed(72, 0, 0);
 	}
 	//Render(백버퍼를 프론트 버퍼로 그린다.)
@@ -282,64 +281,64 @@ void Render(float deltaTime)
 
 void CreateShader()
 {
-	//ID3DBlob *pVSBlob = NULL;
-	//ID3DBlob *pPSBlob = NULL;
-	//ID3DBlob *pErrorBlob = NULL;
-	//HRESULT hr;
+	ID3DBlob *pVSBlob = NULL;
+	ID3DBlob *pPSBlob = NULL;
+	ID3DBlob *pErrorBlob = NULL;
+	HRESULT hr;
 
-	////vertex shader
-	//hr = D3DX11CompileFromFile(
-	//	L"MyShader.fx", 0, 0,
-	//	"VS", "vs_5_0",
-	//	0, 0, 0,
-	//	&pVSBlob, &pErrorBlob, 0);
+	//vertex shader
+	hr = D3DX11CompileFromFile(
+		L"MyShader.fx", 0, 0,
+		"VS", "vs_5_0",
+		0, 0, 0,
+		&pVSBlob, &pErrorBlob, 0);
 
-	//if (FAILED(hr))
-	//	return;
+	if (FAILED(hr))
+		return;
 
-	//hr = g_pd3dDevice->CreateVertexShader(
-	//	pVSBlob->GetBufferPointer(),
-	//	pVSBlob->GetBufferSize(),
-	//	0, &g_pVertexShader);
+	hr = g_pd3dDevice->CreateVertexShader(
+		pVSBlob->GetBufferPointer(),
+		pVSBlob->GetBufferSize(),
+		0, &g_pVertexShader);
 
-	//if (FAILED(hr))
-	//	return;
+	if (FAILED(hr))
+		return;
 
-	////pixel shader
-	//hr = D3DX11CompileFromFile(
-	//	L"MyShader.fx", 0, 0,
-	//	"PS", "ps_5_0",
-	//	0, 0, 0,
-	//	&pPSBlob, &pErrorBlob, 0);
+	//pixel shader
+	hr = D3DX11CompileFromFile(
+		L"MyShader.fx", 0, 0,
+		"PS", "ps_5_0",
+		0, 0, 0,
+		&pPSBlob, &pErrorBlob, 0);
 
-	//if (FAILED(hr))
-	//	return;
+	if (FAILED(hr))
+		return;
 
-	//hr = g_pd3dDevice->CreatePixelShader(
-	//	pPSBlob->GetBufferPointer(),
-	//	pPSBlob->GetBufferSize(),
-	//	0, &g_pPixelShader);
+	hr = g_pd3dDevice->CreatePixelShader(
+		pPSBlob->GetBufferPointer(),
+		pPSBlob->GetBufferSize(),
+		0, &g_pPixelShader);
 
-	//pPSBlob->Release();
+	pPSBlob->Release();
 
-	//// Myvertex 정보
-	//D3D11_INPUT_ELEMENT_DESC	layout[] =
-	//{
-	//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//};
+	// Myvertex 정보
+	D3D11_INPUT_ELEMENT_DESC	layout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
 
-	//UINT numElements = ARRAYSIZE(layout);
-	//hr = g_pd3dDevice->CreateInputLayout(
-	//	layout, numElements,
-	//	pVSBlob->GetBufferPointer(),
-	//	pVSBlob->GetBufferSize(),
-	//	&g_pInputLayout);
+	UINT numElements = ARRAYSIZE(layout);
+	hr = g_pd3dDevice->CreateInputLayout(
+		layout, numElements,
+		pVSBlob->GetBufferPointer(),
+		pVSBlob->GetBufferSize(),
+		&g_pInputLayout);
 
-	//pVSBlob->Release();
+	pVSBlob->Release();
 
-	//if (FAILED(hr))
-	//	return;
+	if (FAILED(hr))
+		return;
 
 
 	return;
@@ -496,15 +495,15 @@ void InitMatrix()
 	g_World = XMMatrixIdentity();
 
 	// View 행렬 구성
-	XMVECTOR 	pos = XMVectorSet(0.0f, 0.0f, -5.0f, 1.0f);
-	XMVECTOR 	target = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	XMVECTOR pos = XMVectorSet(-30.0f, 70.0f, 10.0f, 1.0f);
+	XMVECTOR target = XMVectorSet(50.0f, 0.0f, 50.0f, 0.0f);
 	XMVECTOR 	up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	g_View = XMMatrixLookAtLH(pos, target, up);
 
 	// Projection 행렬
 	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2,  	// pi
 					800.0f / 600.0f,  // aspect ratio
-					.01f, 100.0f);  	// near plane, far plane
+					.01f, 1000.0f);  	// near plane, far plane
 
 }
 
@@ -522,8 +521,11 @@ void CalculateMatrixForBox(float deltaTime)
 	//g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
 	//g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);// set constant buffer.
 
-	XMMATRIX mat = XMMatrixRotationY(deltaTime);
+	XMMATRIX mat = XMMatrixIdentity();
+	mat *= XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	mat *= XMMatrixRotationY(deltaTime);
 	mat *= XMMatrixRotationX(deltaTime);
+	mat *= XMMatrixTranslation(50.0f, 10.0f, 50.0f);
 	g_World = mat;
 
 	XMMATRIX wvp = g_World * g_View * g_Projection;
