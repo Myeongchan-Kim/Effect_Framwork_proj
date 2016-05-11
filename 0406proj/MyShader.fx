@@ -36,11 +36,12 @@ float4 PS(VertexOut vOut): SV_TARGET
 	return vOut.color;
 };
 
-RasterizerState WireframesRS
+RasterizerState WireframeRS
 {
-	FillMode = WireFrame;
+	FillMode = Wireframe;
 	CullMode = Back;
 	FrontCounterClockwise = false;
+	//설정하지 않으면 디폴트 값이 들어감.
 };
 
 technique11 ColorTech
@@ -48,7 +49,8 @@ technique11 ColorTech
 	pass P0
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
+
+		//SetRasterizerState(WireframeRS);
 	}
 }

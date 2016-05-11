@@ -44,7 +44,7 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 
 	g_hWnd = hWnd;
 	InitDevice();
-	//LoadTexture();
+	LoadTexture();
 	//CreateShader();
 	CreateEffectShader();
 	CreateVertexBuffer();
@@ -563,9 +563,9 @@ void CreateRenderState()
 {
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+	
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_BACK;
-
 	rasterizerDesc.FrontCounterClockwise = false;
 
 	g_pd3dDevice->CreateRasterizerState(&rasterizerDesc, &g_pSolidRS);
@@ -574,9 +574,9 @@ void CreateRenderStateToWire()
 {
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+	
 	rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rasterizerDesc.CullMode = D3D11_CULL_BACK;
-
 	rasterizerDesc.FrontCounterClockwise = false;
 
 	g_pd3dDevice->CreateRasterizerState(&rasterizerDesc, &g_pWireRS);
