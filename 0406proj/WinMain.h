@@ -30,6 +30,9 @@ XMMATRIX                g_Projection;
 ID3DX11Effect* gFX;
 ID3DX11EffectTechnique* gTech;
 ID3DX11EffectMatrixVariable* gfxWorldViewProj;
+ID3DX11EffectMatrixVariable* gfxWorld;
+ID3DX11EffectVectorVariable* gfxLightDirection;
+ID3DX11EffectVectorVariable* gfxLightColor;
 
 ID3D11Texture2D*		g_pDepthStencil = NULL;
 ID3D11DepthStencilView* g_pDepthStencilView = NULL;
@@ -55,14 +58,8 @@ void CreateShader();
 void CreateEffectShader();
 void CreateVertexBuffer();
 void CreateIndexBuff();
-void CreateConstantBuffer();
 void CalculateMatrixForBox(float deltaTime);
 void InitMatrix();
 void CreateDepthStencilTexture();
 void CreateRenderState();
 void CreateRenderStateToWire();
-
-struct ConstantBuffer
-{
-	XMMATRIX wvp;
-};

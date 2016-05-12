@@ -8,5 +8,7 @@ struct MyVertex
 public:
 	XMFLOAT3 pos;
 	XMFLOAT4 color;
+	XMFLOAT3 Normal;
+	//XMFLOAT2 Tex;
 };
 

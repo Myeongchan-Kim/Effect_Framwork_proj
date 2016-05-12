@@ -45,12 +45,10 @@ int APIENTRY WinMain( HINSTANCE hInstance,
 	g_hWnd = hWnd;
 	InitDevice();
 	LoadTexture();
-	//CreateShader();
 	CreateEffectShader();
 	CreateVertexBuffer();
 	CreateIndexBuff();
 	InitMatrix();
-	CreateConstantBuffer();
 	//CreateRenderState();
 	//CreateDepthStencilTexture();
 
@@ -326,6 +324,8 @@ void CreateShader()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -373,11 +373,15 @@ void CreateEffectShader()
 	
 	gTech = gFX->GetTechniqueByName("ColorTech");
 	gfxWorldViewProj = gFX->GetVariableByName("wvp")->AsMatrix();
+	gfxWorld = gFX->GetVariableByName("world")->AsMatrix();
+	gfxLightDirection = gFX->GetVariableByName("lightDir")->AsVector();
+	gfxLightColor = gFX->GetVariableByName("lightColor")->AsVector();
 
 	D3D11_INPUT_ELEMENT_DESC	layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	D3DX11_PASS_DESC passDesc;
@@ -397,22 +401,23 @@ void CreateVertexBuffer()
 {
 	MyVertex vertices[] =
 	{
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f),  },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)},
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)  },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)  },
-		{ XMFLOAT3(1.0f, 3.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f)   },
-		{ XMFLOAT3(-1.0f, 3.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)  },
-		{ XMFLOAT3(-1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f)  },
-		{ XMFLOAT3(1.0f, 2.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)   },
-		{ XMFLOAT3(-1.0f, 2.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f)  },
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),  XMFLOAT3(0.1f, 0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f),	  XMFLOAT3(0.1f, 0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),  XMFLOAT3(-0.1f, 0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f),XMFLOAT3(-0.1f, -0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),  XMFLOAT3(0.1f, -0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, 0.1f) },
+
+		{ XMFLOAT3(-1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),  XMFLOAT3(0.1f, 0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, 3.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f),   XMFLOAT3(0.1f, 0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, 3.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),  XMFLOAT3(-0.1f, 0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f),  XMFLOAT3(0.1f, -0.1f, -0.1f) },
+		{ XMFLOAT3(1.0f, 2.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),   XMFLOAT3(0.1f, -0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, 2.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f),  XMFLOAT3(-0.1f, -0.1f, 0.1f) },
 	};
 
 	D3D11_BUFFER_DESC bd;
@@ -478,16 +483,6 @@ void CreateIndexBuff()
 
 }
 
-void CreateConstantBuffer()
-{
-	D3D11_BUFFER_DESC 	cbd;
-	ZeroMemory(&cbd, sizeof(cbd));
-	cbd.Usage = D3D11_USAGE_DEFAULT;
-	cbd.ByteWidth = sizeof(ConstantBuffer);
-	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbd.CPUAccessFlags = 0;
-	g_pd3dDevice->CreateBuffer(&cbd, NULL, &g_pConstantBuffer);
-}
 
 void InitMatrix()
 {
@@ -510,17 +505,6 @@ void InitMatrix()
 void CalculateMatrixForBox(float deltaTime)
 {
 	// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
-	//XMMATRIX mat  = XMMatrixRotationY(deltaTime);
-	//mat *= XMMatrixRotationX(deltaTime);
-	//g_World = mat;
-
-	//XMMATRIX wvp = g_World * g_View * g_Projection;
-	//ConstantBuffer cb;
-	//cb.wvp = XMMatrixTranspose(wvp);
-
-	//g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
-	//g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);// set constant buffer.
-
 	XMMATRIX mat = XMMatrixIdentity();
 	mat *= XMMatrixScaling(5.0f, 5.0f, 5.0f);
 	mat *= XMMatrixRotationY(deltaTime);
@@ -529,9 +513,14 @@ void CalculateMatrixForBox(float deltaTime)
 	g_World = mat;
 
 	XMMATRIX wvp = g_World * g_View * g_Projection;
+	XMFLOAT4 lightDirection(1.0f, 0.0f, -1.0f, 1.0f);
+	XMFLOAT4 lightColor(0.0f, 1.0f, 1.0f, 1.0f);
 
 	gfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&wvp));
-
+	gfxWorld->SetMatrix(reinterpret_cast<float*>(&g_World));
+	gfxLightDirection->SetFloatVector(reinterpret_cast<float*>(&lightDirection));
+	gfxLightColor->SetFloatVector(reinterpret_cast<float*>(&lightColor));
+	
 }
 
 void CreateDepthStencilTexture()
