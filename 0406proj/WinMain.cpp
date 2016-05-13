@@ -543,15 +543,15 @@ void InitMatrix()
 	g_World = XMMatrixIdentity();
 
 	// View 행렬 구성
-	XMVECTOR pos = XMVectorSet(-30.0f, 70.0f, 10.0f, 1.0f);
-	XMVECTOR target = XMVectorSet(50.0f, 0.0f, 50.0f, 0.0f);
+	XMVECTOR pos = XMVectorSet(-3.0f, 7.0f, 1.0f, 1.0f);
+	XMVECTOR target = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	XMVECTOR 	up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	g_View = XMMatrixLookAtLH(pos, target, up);
 
 	// Projection 행렬
 	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2,  	// pi
 					800.0f / 600.0f,  // aspect ratio
-					.01f, 1000.0f);  	// near plane, far plane
+					0.01f, 100.0f);  	// near plane, far plane
 
 }
 
@@ -559,10 +559,10 @@ void CalculateMatrixForBox(float deltaTime)
 {
 	// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
 	XMMATRIX mat = XMMatrixIdentity();
-	mat *= XMMatrixScaling(10.0f, 10.0f, 10.0f);
-	mat *= XMMatrixRotationY(deltaTime);
-	mat *= XMMatrixRotationX(deltaTime);
-	mat *= XMMatrixTranslation(50.0f, 10.0f, 50.0f);
+	mat *= XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	//mat *= XMMatrixRotationY(deltaTime);
+	//mat *= XMMatrixRotationX(deltaTime);
+	//mat *= XMMatrixTranslation(50.0f, 10.0f, 50.0f);
 	g_World = mat;
 
 	XMMATRIX wvp = g_World * g_View * g_Projection;
