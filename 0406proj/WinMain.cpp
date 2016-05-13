@@ -261,10 +261,14 @@ void Render(float deltaTime)
 	//rset render state
 	//g_pImmediateContext->RSSetState(g_pSolidRS);
 
-	CalculateMatrixForBox(deltaTime / 3.0f);
 
-	gfxSamplerstate->SetSampler(0, g_pSamplerLinear);
+	gfxDiffuseMap = gFX->GetVariableByName("texDiffuse")->AsShaderResource();
+	gfxSamplerstate = gFX->GetVariableByName("samLinear")->AsSampler();
+	
 	gfxDiffuseMap->SetResource(g_pTextureRV);
+	gfxSamplerstate->SetSampler(0, g_pSamplerLinear);
+	
+	CalculateMatrixForBox(deltaTime);
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 	gTech->GetDesc(&techDesc);
@@ -325,8 +329,8 @@ void CreateShader()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = ARRAYSIZE(layout);
@@ -348,8 +352,8 @@ void CreateShader()
 
 void CreateEffectShader()
 {
-	ID3DBlob *pFxBlob = NULL;
-	ID3DBlob *pErrorBlob = NULL;
+	ID3D10Blob *pFxBlob = NULL;
+	ID3D10Blob *pErrorBlob = NULL;
 	HRESULT hr;
 
 	//vertex shader
@@ -377,15 +381,13 @@ void CreateEffectShader()
 	gfxWorld = gFX->GetVariableByName("world")->AsMatrix();
 	gfxLightDirection = gFX->GetVariableByName("lightDir")->AsVector();
 	gfxLightColor = gFX->GetVariableByName("lightColor")->AsVector();
-	gfxDiffuseMap = gFX->GetVariableByName("texDiffuse")->AsShaderResource();
-	gfxSamplerstate =  gFX->GetVariableByName("samLinear")->AsSampler();
 	
 	D3D11_INPUT_ELEMENT_DESC	layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	D3DX11_PASS_DESC passDesc;
@@ -405,14 +407,14 @@ void CreateVertexBuffer()
 {
 	MyVertex vertices_old[] =
 	{
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, -0.1f), XMFLOAT2(0.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, 0.1f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, 0.1f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, 0.1f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, 0.1f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, -0.33f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, -0.33f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, 0.33f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, 0.33f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, -0.33f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, -0.33f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, 0.33f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, 0.33f), XMFLOAT2(0.0f, 1.0f) },
 
 		{ XMFLOAT3(-1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f), XMFLOAT2(1.0f, 1.0f) },
 		{ XMFLOAT3(1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, -0.1f), XMFLOAT2(0.0f, 1.0f) },
@@ -492,7 +494,7 @@ void CreateIndexBuff()
 		20,21,22,
 		20,22,23,
 	};
-	UINT indices_old[] =
+	UINT indices_new[] =
 	{
 		3, 1, 0,
 		2, 1, 3,
@@ -558,10 +560,9 @@ void InitMatrix()
 void CalculateMatrixForBox(float deltaTime)
 {
 	// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
-	XMMATRIX mat = XMMatrixIdentity();
-	mat *= XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	//mat *= XMMatrixRotationY(deltaTime);
-	//mat *= XMMatrixRotationX(deltaTime);
+	XMMATRIX mat = XMMatrixRotationY(deltaTime / 2);
+	//mat *= XMMatrixScaling(2.0f, 2.0f, 2.0f);
+	mat *= XMMatrixRotationX(deltaTime/2);
 	//mat *= XMMatrixTranslation(50.0f, 10.0f, 50.0f);
 	g_World = mat;
 
