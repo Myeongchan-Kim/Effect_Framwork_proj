@@ -220,7 +220,7 @@ HRESULT LoadTexture()
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	
@@ -260,17 +260,18 @@ void Render(float deltaTime)
 
 	//rset render state
 	//g_pImmediateContext->RSSetState(g_pSolidRS);
-	
 
-	CalculateMatrixForBox(deltaTime);
+	CalculateMatrixForBox(deltaTime / 3.0f);
+
+	gfxSamplerstate->SetSampler(0, g_pSamplerLinear);
+	gfxDiffuseMap->SetResource(g_pTextureRV);
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 	gTech->GetDesc(&techDesc);
-
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		gTech->GetPassByIndex(p)->Apply(0, g_pImmediateContext);
-		g_pImmediateContext->DrawIndexed(72, 0, 0);
+		g_pImmediateContext->DrawIndexed(36, 0, 0);
 	}
 	//Render(백버퍼를 프론트 버퍼로 그린다.)
 	g_pSwapChain->Present(0, 0);
@@ -376,12 +377,15 @@ void CreateEffectShader()
 	gfxWorld = gFX->GetVariableByName("world")->AsMatrix();
 	gfxLightDirection = gFX->GetVariableByName("lightDir")->AsVector();
 	gfxLightColor = gFX->GetVariableByName("lightColor")->AsVector();
-
+	gfxDiffuseMap = gFX->GetVariableByName("texDiffuse")->AsShaderResource();
+	gfxSamplerstate =  gFX->GetVariableByName("samLinear")->AsSampler();
+	
 	D3D11_INPUT_ELEMENT_DESC	layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	D3DX11_PASS_DESC passDesc;
@@ -399,25 +403,58 @@ void CreateEffectShader()
 
 void CreateVertexBuffer()
 {
+	MyVertex vertices_old[] =
+	{
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, -0.1f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, 0.1f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, 0.1f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, 0.1f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, 0.1f), XMFLOAT2(0.0f, 1.0f) },
+
+		{ XMFLOAT3(-1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, -0.1f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 3.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.1f, 0.1f, 0.1f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 3.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, 0.1f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(-1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(1.0f, 2.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, 0.1f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 2.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, 0.1f), XMFLOAT2(0.0f, 1.0f) },
+	};
 	MyVertex vertices[] =
 	{
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),  XMFLOAT3(0.1f, 0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f),	  XMFLOAT3(0.1f, 0.1f, 0.1f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),  XMFLOAT3(-0.1f, 0.1f, 0.1f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f),XMFLOAT3(-0.1f, -0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.1f, -0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),  XMFLOAT3(0.1f, -0.1f, 0.1f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, 0.1f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(+1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(+1.0f, -1.0f, +1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, +1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, +0.1f), XMFLOAT2(0.0f, 1.0f) },
 
-		{ XMFLOAT3(-1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, 0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, 3.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),  XMFLOAT3(0.1f, 0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, 3.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f),   XMFLOAT3(0.1f, 0.1f, 0.1f) },
-		{ XMFLOAT3(-1.0f, 3.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),  XMFLOAT3(-0.1f, 0.1f, 0.1f) },
-		{ XMFLOAT3(-1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, 2.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f),  XMFLOAT3(0.1f, -0.1f, -0.1f) },
-		{ XMFLOAT3(1.0f, 2.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),   XMFLOAT3(0.1f, -0.1f, 0.1f) },
-		{ XMFLOAT3(-1.0f, 2.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f),  XMFLOAT3(-0.1f, -0.1f, 0.1f) },
+		{ XMFLOAT3(+1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) }, //4 = 1
+		{ XMFLOAT3(+1.0f, +1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, +0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) }, //5 = 13
+		{ XMFLOAT3(+1.0f, +1.0f, +1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(+0.1f, +0.1f, +0.1f), XMFLOAT2(1.0f, 1.0f) }, //6 = 10
+		{ XMFLOAT3(+1.0f, -1.0f, +1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 1.0f) }, //7 = 2
+
+		{ XMFLOAT3(-1.0f, -1.0f, +1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, +0.1f), XMFLOAT2(0.0f, 0.0f) }, //8 = 3
+		{ XMFLOAT3(+1.0f, -1.0f, +1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) }, //9 = 2
+		{ XMFLOAT3(+1.0f, +1.0f, +1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(+0.1f, +0.1f, +0.1f), XMFLOAT2(1.0f, 1.0f) }, //10 = 6
+		{ XMFLOAT3(-1.0f, +1.0f, +1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, +0.1f, +0.1f), XMFLOAT2(0.0f, 1.0f) }, //11
+
+		{ XMFLOAT3(-1.0f, +1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, +0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) }, //12
+		{ XMFLOAT3(+1.0f, +1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, +0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) }, //13 = 5
+		{ XMFLOAT3(+1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 1.0f) }, //14 = 1
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f), XMFLOAT2(0.0f, 1.0f) }, //15 = 0
+
+		{ XMFLOAT3(-1.0f, +1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, +0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) }, //16 = 12
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) }, //17 = 0
+		{ XMFLOAT3(-1.0f, -1.0f, +1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, -0.1f, +0.1f), XMFLOAT2(1.0f, 1.0f) }, //18 = 3
+		{ XMFLOAT3(-1.0f, +1.0f, +1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, +0.1f, +0.1f), XMFLOAT2(0.0f, 1.0f) }, //19 = 11
+
+		{ XMFLOAT3(+1.0f, +1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(+0.1f, +0.1f, -0.1f), XMFLOAT2(0.0f, 0.0f) }, //20 = 13
+		{ XMFLOAT3(-1.0f, +1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.1f, +0.1f, -0.1f), XMFLOAT2(1.0f, 0.0f) }, //21 = 12
+		{ XMFLOAT3(-1.0f, +1.0f, +1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.1f, +0.1f, +0.1f), XMFLOAT2(1.0f, 1.0f) }, //22 = 11
+		{ XMFLOAT3(+1.0f, +1.0f, +1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(+0.1f, +0.1f, +0.1f), XMFLOAT2(0.0f, 1.0f) }, //23 = 10
+
 	};
 
 	D3D11_BUFFER_DESC bd;
@@ -441,6 +478,21 @@ void CreateVertexBuffer()
 void CreateIndexBuff()
 {
 	UINT indices[] =
+	{
+		0, 1, 2,
+		0, 2, 3,
+		4,5,6,
+		4,6,7,
+		8,9,10,
+		8,10,11,
+		12,13,14,
+		12,14,15,
+		16,17,18,
+		16,18,19,
+		20,21,22,
+		20,22,23,
+	};
+	UINT indices_old[] =
 	{
 		3, 1, 0,
 		2, 1, 3,
@@ -468,6 +520,7 @@ void CreateIndexBuff()
 		6+8, 4+8, 5+8,
 		7+8, 4+8, 6+8,
 	};
+
 
 	D3D11_BUFFER_DESC	ibd;
 	ZeroMemory(&ibd, sizeof(ibd));
@@ -506,7 +559,7 @@ void CalculateMatrixForBox(float deltaTime)
 {
 	// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.      
 	XMMATRIX mat = XMMatrixIdentity();
-	mat *= XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	mat *= XMMatrixScaling(10.0f, 10.0f, 10.0f);
 	mat *= XMMatrixRotationY(deltaTime);
 	mat *= XMMatrixRotationX(deltaTime);
 	mat *= XMMatrixTranslation(50.0f, 10.0f, 50.0f);
@@ -514,13 +567,12 @@ void CalculateMatrixForBox(float deltaTime)
 
 	XMMATRIX wvp = g_World * g_View * g_Projection;
 	XMFLOAT4 lightDirection(1.0f, 0.0f, -1.0f, 1.0f);
-	XMFLOAT4 lightColor(0.0f, 1.0f, 1.0f, 1.0f);
+	XMFLOAT4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	gfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&wvp));
 	gfxWorld->SetMatrix(reinterpret_cast<float*>(&g_World));
 	gfxLightDirection->SetFloatVector(reinterpret_cast<float*>(&lightDirection));
 	gfxLightColor->SetFloatVector(reinterpret_cast<float*>(&lightColor));
-	
 }
 
 void CreateDepthStencilTexture()

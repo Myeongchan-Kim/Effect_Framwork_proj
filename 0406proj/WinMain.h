@@ -33,6 +33,8 @@ ID3DX11EffectMatrixVariable* gfxWorldViewProj;
 ID3DX11EffectMatrixVariable* gfxWorld;
 ID3DX11EffectVectorVariable* gfxLightDirection;
 ID3DX11EffectVectorVariable* gfxLightColor;
+ID3DX11EffectShaderResourceVariable* gfxDiffuseMap;
+ID3DX11EffectSamplerVariable* gfxSamplerstate;
 
 ID3D11Texture2D*		g_pDepthStencil = NULL;
 ID3D11DepthStencilView* g_pDepthStencilView = NULL;

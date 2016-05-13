@@ -1,3 +1,5 @@
+Texture2D texDiffuse;
+SamplerState samLinear;
 
 struct VertexIn
 {
@@ -5,6 +7,7 @@ struct VertexIn
 	float4 color:COLOR;
 
 	float3 normal:NORMAL;
+	float2 tex:TEXCOORD;
 };
 
 struct VertexOut
@@ -13,6 +16,7 @@ struct VertexOut
 	float4 color:COLOR;
 
 	float4 normal:NORMAL;
+	float2 tex:TEXCOORD;
 };
 
 cbuffer ConstantBuffer
@@ -32,17 +36,15 @@ VertexOut    VS(VertexIn vIn)
 	vOut.color = vIn.color;
 
 	vOut.normal = mul(float4(vIn.normal, 0.0f), world);
-	
+	vOut.tex = vIn.tex;
 	return vOut;
 };
 
 float4 PS(VertexOut vOut) : SV_TARGET
 {
-	float4 finalColor = 0;
-
-	finalColor = saturate(dot((float3)-lightDir, vOut.normal)*0.5 + 0.5) * lightColor;
-	
-	return finalColor;
+	float4 bright = saturate(dot(-lightDir, vOut.normal))*0.5 + 0.5;
+	float4 texColor = texDiffuse.Sample(samLinear, vOut.tex) * bright * lightColor;
+	return texColor;
 };
 
 RasterizerState WireframeRS
